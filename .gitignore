@@ -1,0 +1,13 @@
+.idea/
+.bsp/
+.metals/
+.vscode/
+out/
+*.iml
+*.lock
+*~
+*/target
+target
+*.db
+*.bloop
+*metals.sbt

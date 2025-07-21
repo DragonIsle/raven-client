@@ -3,7 +3,7 @@ import Dependencies.*
 import scala.collection.Seq
 
 ThisBuild / organization := "com.raven"
-ThisBuild / version := "0.2.0-SNAPSHOT"
+ThisBuild / version := "0.2.1-SNAPSHOT"
 ThisBuild / scalaVersion := "3.7.0"
 ThisBuild / semanticdbEnabled := true
 
@@ -28,7 +28,7 @@ val sourceCodeSettings = Seq(
 )
 
 lazy val root = (project in file("."))
-  .aggregate(simulator, clientSdk)
+  .aggregate(simulator, clientSdk, domain)
   .settings(
     name := "raven-client",
     publish / skip := true
@@ -40,7 +40,7 @@ lazy val simulator = (project in file("simulator"))
   .settings(
     name := "simulator",
     Compile / run / fork := true,
-    libraryDependencies ++= Http4s.deps ++ Config.deps ++ Cats.deps ++ Log.deps :+ Kafka.fs2Kafka,
+    libraryDependencies ++= Config.deps ++ Log.deps,
     scalafixDependencies ++= ScalafixRules.deps,
     scalafixOnCompile := true,
     dockerExposedPorts ++= Seq(8080),
@@ -57,6 +57,14 @@ lazy val simulator = (project in file("simulator"))
 lazy val clientSdk = (project in file("client-sdk"))
   .settings(
     name := "client-sdk",
+    crossScalaVersions := Seq("2.12.18", "3.7.0"),
+    libraryDependencies ++= Cats.deps :+ Kafka.fs2Kafka
+  )
+  .dependsOn(domain)
+
+lazy val domain = (project in file("domain"))
+  .settings(
+    name := "domain",
     crossScalaVersions := Seq("2.12.18", "3.7.0"),
     libraryDependencies ++= Circe.deps
   )

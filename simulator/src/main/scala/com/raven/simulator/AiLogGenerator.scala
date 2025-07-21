@@ -3,7 +3,7 @@ package com.raven.simulator
 import cats.effect.IO
 import cats.effect.std.Random
 import cats.syntax.traverse.*
-import com.raven.client.ai.AiLog
+import com.raven.domain.AiLog
 import com.raven.simulator.SimulatorAppConfig.SingleLogGeneratorConfig
 
 import java.time.Instant
@@ -64,14 +64,14 @@ object AiLogGenerator:
       modelId <- random.elementOf(aiModelFeatureConfigs.keySet)
       (numF, catF) = aiModelFeatureConfigs.getOrElse(modelId, (Map.empty, Map.empty))
       numericFeatures <- numF.toList.traverse { case (feature, NumericFeatureConfig(from, to, precision)) =>
-        // if drift - 20% distribution shift
+        // numeric drift - 20% distribution shift
         val driftAddition = if (driftNum) (to - from) / 5 else 0.0
         random
           .betweenDouble(from, to)
           .map(v => feature -> BigDecimal.valueOf(v + driftAddition).setScale(precision, RoundingMode.HALF_UP).toDouble)
       }
       catFeatures <- catF.toList.traverse { case (feature, possibleValues) =>
-        // if drift - first value is always more probable then others
+        // categorical drift - first value is always more probable then others
         val resListToChoose = if (driftCat) List.fill(4)(possibleValues.head) ++ possibleValues.tail else possibleValues
         random.elementOf(resListToChoose).map(feature -> _)
       }

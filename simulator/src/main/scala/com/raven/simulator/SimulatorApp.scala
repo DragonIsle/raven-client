@@ -4,9 +4,9 @@ import cats.effect.kernel.Clock
 import cats.effect.std.Random
 import cats.effect.{IO, IOApp}
 import cats.syntax.parallel.*
-import com.raven.client.ai.AiLog
+import com.raven.client.AiLogKafkaProducer
+import com.raven.domain.AiLog
 import com.raven.simulator.SimulatorAppConfig.SimulationConfig
-import com.raven.simulator.context.*
 
 import scala.concurrent.duration.*
 
@@ -14,10 +14,10 @@ import scala.concurrent.duration.*
 object SimulatorApp extends IOApp.Simple:
 
   val run: IO[Unit] = (for {
-    config  <- SimulatorAppConfig.loadConfig.toResource
-    context <- SimulatorContext.load(config)
+    config           <- SimulatorAppConfig.loadConfig.toResource
+    kafkaLogProducer <- AiLogKafkaProducer.load(config.kafka)
     _ <- (1 to config.simulation.parallelIngestors).toList
-      .parTraverse(n => context.kafkaProducer.produceStreamLogs(generateOneDeviceStream(n, config.simulation)))
+      .parTraverse(n => kafkaLogProducer.produceStreamLogs(generateOneDeviceStream(n, config.simulation)))
       .toResource
   } yield ()).use(IO.pure)
 

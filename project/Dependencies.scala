@@ -18,19 +18,6 @@ object Dependencies {
     val deps: Seq[ModuleID] = Seq(xuwei, typelevel)
   }
 
-  object Http4s {
-    private val http4sVersion02316 = "0.23.17"
-    private val http4sVersion02327 = "0.23.30"
-    private val org                = "org.http4s"
-
-    val client = org %% "http4s-blaze-client" % http4sVersion02316
-    val circe  = org %% "http4s-circe"        % http4sVersion02327
-    val dsl    = org %% "http4s-dsl"          % http4sVersion02327
-
-    val deps: Seq[ModuleID] = Seq(Http4s.dsl, Http4s.circe, Http4s.client)
-  }
-
-
   object Cats {
     val deps: Seq[ModuleID] = Seq("org.typelevel" %% "cats-effect" % "3.6.2")
   }

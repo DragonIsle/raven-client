@@ -4,6 +4,7 @@ import cats.effect.IO
 import cats.effect.std.Random
 import cats.syntax.traverse.*
 import com.raven.client.ai.AiLog
+import com.raven.simulator.SimulatorAppConfig.SingleLogGeneratorConfig
 
 import java.time.Instant
 import scala.math.BigDecimal.RoundingMode
@@ -47,19 +48,19 @@ object AiLogGenerator:
 
   def generateOneAiLog(
       timestamp: Instant,
-      driftNum: Boolean                = false,
-      driftCat: Boolean                = false,
-      confidenceScoreThreshold: Double = 0.7,
-      responseTimeMsThreshold: Int     = 1000,
-      lowConfidenceScore: Boolean      = false,
-      highResponseTime: Boolean        = false
+      config: SingleLogGeneratorConfig
   )(using random: Random[IO]): IO[AiLog] =
     for {
+      lowConfidenceScore <- RandomUtils.rollChance(config.lowConfidenceScoreChance)
+      highResponseTime   <- RandomUtils.rollChance(config.highResponseTimeChance)
+      driftNum           <- RandomUtils.rollChance(config.driftNumChance)
+      driftCat           <- RandomUtils.rollChance(config.driftCatChance)
       confidenceScore <-
-        if (lowConfidenceScore) IO.pure(confidenceScoreThreshold - 0.001)
-        else random.betweenDouble(confidenceScoreThreshold, 1.0)
+        if (lowConfidenceScore) IO.pure(config.confidenceScoreThreshold - 0.001)
+        else random.betweenDouble(config.confidenceScoreThreshold, 1.0)
       responseTimeMs <-
-        if (highResponseTime) IO.pure(responseTimeMsThreshold + 1) else random.betweenInt(100, responseTimeMsThreshold)
+        if (highResponseTime) IO.pure(config.responseTimeMsThreshold + 1)
+        else random.betweenInt(100, config.responseTimeMsThreshold)
       modelId <- random.elementOf(aiModelFeatureConfigs.keySet)
       (numF, catF) = aiModelFeatureConfigs.getOrElse(modelId, (Map.empty, Map.empty))
       numericFeatures <- numF.toList.traverse { case (feature, NumericFeatureConfig(from, to, precision)) =>

@@ -38,14 +38,17 @@ lazy val simulator = (project in file("simulator"))
   .settings(sourceCodeSettings)
   .enablePlugins(JavaAppPackaging, DockerPlugin, ScalafixPlugin)
   .settings(
-    name := "raven-simulator",
+    name := "simulator",
     Compile / run / fork := true,
-    libraryDependencies ++= Http4s.deps ++ Config.deps ++ Cats.deps :+ Kafka.fs2Kafka,
+    libraryDependencies ++= Http4s.deps ++ Config.deps ++ Cats.deps ++ Log.deps :+ Kafka.fs2Kafka,
     scalafixDependencies ++= ScalafixRules.deps,
     scalafixOnCompile := true,
     dockerExposedPorts ++= Seq(8080),
     dockerBaseImage := "eclipse-temurin:21-jre-jammy",
     dockerRepository := Some("ghcr.io/dragonisle"),
+    dockerEnvVars := Map(
+      "JAVA_OPTS" -> "-Dconfig.file=/etc/config/application.conf"
+    ),
     Docker / maintainer := "Raven Team",
     Docker / packageName := "simulator"
   )

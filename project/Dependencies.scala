@@ -43,4 +43,12 @@ object Dependencies {
     val pureConfigCats      = "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.17.9"
     val deps: Seq[ModuleID] = Seq(pureConfigCats)
   }
+
+  object Log {
+    private val log4catsVersion = "2.7.1"
+
+    val log4cats            = "org.typelevel" %% "log4cats-slf4j"  % log4catsVersion
+    val logbackClassic      = "ch.qos.logback" % "logback-classic" % "1.5.18"
+    val deps: Seq[ModuleID] = Seq(log4cats, logbackClassic)
+  }
 }

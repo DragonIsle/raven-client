@@ -14,8 +14,7 @@ object SimulatorContext:
   implicit val aiLogSerializer: Resource[IO, ValueSerializer[IO, AiLog]] =
     Resource.eval(IO.pure(GenericSerializer.string[IO].contramap[AiLog](_.asJson.noSpaces)))
 
-  val load: Resource[IO, SimulatorContext] = for {
-    config <- SimulatorAppConfig.loadConfig.toResource
+  def load(config: SimulatorAppConfig): Resource[IO, SimulatorContext] = for {
     kafkaProducer <- KafkaProducer
       .resource(ProducerSettings[IO, String, AiLog].withProperties(config.kafka))
       .map(AiLogKafkaProducer(_))

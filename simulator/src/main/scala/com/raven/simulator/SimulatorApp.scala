@@ -4,20 +4,26 @@ import cats.effect.kernel.Clock
 import cats.effect.std.Random
 import cats.effect.{IO, IOApp}
 import cats.syntax.parallel.*
-import com.raven.client.AiLogKafkaProducer
+import com.raven.client.{AiLogHttpProducer, AiLogKafkaProducer}
 import com.raven.domain.AiLog
 import com.raven.simulator.SimulatorAppConfig.SimulationConfig
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
+import java.time.temporal.ChronoUnit
 import scala.concurrent.duration.*
 
 // Run the simulation and check metrics for results (Flink, Clickhouse, Kafka metrics)
 object SimulatorApp extends IOApp.Simple:
 
+  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
+
   val run: IO[Unit] = (for {
-    config           <- SimulatorAppConfig.loadConfig.toResource
-    kafkaLogProducer <- AiLogKafkaProducer.load(config.kafka)
+    config <- SimulatorAppConfig.loadConfig.toResource
+    logProducer <-
+      if (config.useKafka) AiLogKafkaProducer.load(config.kafka) else AiLogHttpProducer.load(config.ravenHostUri)
     _ <- (1 to config.simulation.parallelIngestors).toList
-      .parTraverse(n => kafkaLogProducer.produceStreamLogs(generateOneDeviceStream(n, config.simulation)))
+      .parTraverse(n => logProducer.produceStreamLogs(generateOneDeviceStream(n, config.simulation)))
       .toResource
   } yield ()).use(IO.pure)
 
@@ -38,7 +44,13 @@ object SimulatorApp extends IOApp.Simple:
   private def generateOneSecondStream(logsAmount: Int, config: SimulationConfig)(using
       Random[IO]
   ): fs2.Stream[IO, AiLog] =
+    val intervalNanos = 1000000000 / logsAmount
+    val values = Clock[IO].realTimeInstant.flatMap { ts =>
+      (1 to logsAmount).toList.parTraverse(i =>
+        AiLogGenerator.generateOneAiLog(ts.plus(i * intervalNanos, ChronoUnit.NANOS), config.singleLogGenerator)
+      )
+    }
     fs2.Stream
-      .awakeEvery[IO]((1000000 / logsAmount).micros)
-      .evalMap(_ => Clock[IO].realTimeInstant.flatMap(AiLogGenerator.generateOneAiLog(_, config.singleLogGenerator)))
-      .interruptAfter(1 second)
+      .awakeEvery[IO](intervalNanos.nanos)
+      .zip(fs2.Stream.evalSeq(values))
+      .map { case (_, aiLog) => aiLog }

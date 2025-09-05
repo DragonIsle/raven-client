@@ -15,7 +15,7 @@ spec:
             name: simulator-config
       containers:
         - name: raven-simulator
-          image: ghcr.io/dragonisle/simulator:0.2.0-SNAPSHOT
+          image: ghcr.io/dragonisle/simulator:0.2.1-SNAPSHOT
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: app-config

@@ -6,7 +6,7 @@ import com.raven.domain.AiLog
 import fs2.kafka._
 import io.circe.syntax._
 
-final class AiLogKafkaProducer(aiLogProducer: KafkaProducer.PartitionsFor[IO, String, AiLog]) {
+final class AiLogKafkaProducer(aiLogProducer: KafkaProducer.PartitionsFor[IO, String, AiLog]) extends AiLogProducer {
 
   def produceAiLogs(aiLogs: Seq[AiLog]): IO[Unit] =
     fs2.Stream.evalSeq(IO.pure(aiLogs.map(mkRecordFromAiLog))).chunkAll.evalMap(aiLogProducer.produce).compile.drain

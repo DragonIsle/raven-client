@@ -58,7 +58,17 @@ lazy val clientSdk = (project in file("client-sdk"))
   .settings(
     name := "client-sdk",
     crossScalaVersions := Seq("2.12.18", "3.7.0"),
-    libraryDependencies ++= Cats.deps :+ Kafka.fs2Kafka
+    libraryDependencies ++= Cats.deps ++ Http4s.deps :+ Kafka.fs2Kafka,
+    publishTo := {
+      val gh = "https://maven.pkg.github.com/DragonIsle/raven-client"
+      Some("GitHub Package Registry" at gh)
+    },
+    credentials += Credentials(
+      "GitHub Package Registry",
+      "maven.pkg.github.com",
+      sys.env.getOrElse("GITHUB_ACTOR", "DragonIsle"),
+      sys.env.getOrElse("GITHUB_TOKEN", "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")
+    )
   )
   .dependsOn(domain)
 

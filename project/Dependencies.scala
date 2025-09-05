@@ -12,6 +12,18 @@ object Dependencies {
     ).map(_ % circeVersion)
   }
 
+  object Http4s {
+    private val http4sVersion02316 = "0.23.16"
+    private val http4sVersion02327 = "0.23.27"
+    private val org                = "org.http4s"
+
+    val client = org %% "http4s-blaze-client" % http4sVersion02316
+    val circe  = org %% "http4s-circe"        % http4sVersion02327
+    val dsl    = org %% "http4s-dsl"          % http4sVersion02327
+
+    val deps: Seq[ModuleID] = Seq(Http4s.dsl, Http4s.circe, Http4s.client)
+  }
+
   object ScalafixRules {
     val xuwei               = "com.github.xuwei-k" %% "scalafix-rules"     % "0.6.0"
     val typelevel           = "org.typelevel"      %% "typelevel-scalafix" % "0.4.0"
@@ -19,11 +31,11 @@ object Dependencies {
   }
 
   object Cats {
-    val deps: Seq[ModuleID] = Seq("org.typelevel" %% "cats-effect" % "3.6.2")
+    val deps: Seq[ModuleID] = Seq("org.typelevel" %% "cats-effect" % "3.6.3")
   }
 
   object Kafka {
-    val fs2Kafka = "com.github.fd4s" %% "fs2-kafka" % "3.8.0"
+    val fs2Kafka = "com.github.fd4s" %% "fs2-kafka" % "3.9.0"
   }
 
   object Config {

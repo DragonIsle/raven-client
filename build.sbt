@@ -36,11 +36,13 @@ lazy val root = (project in file("."))
 
 lazy val simulator = (project in file("simulator"))
   .settings(sourceCodeSettings)
-  .enablePlugins(JavaAppPackaging, DockerPlugin, ScalafixPlugin)
+  .enablePlugins(JavaAppPackaging, DockerPlugin, ScalafixPlugin, GatlingPlugin)
   .settings(
     name := "simulator",
     Compile / run / fork := true,
-    libraryDependencies ++= Config.deps ++ Log.deps,
+    testFrameworks += new TestFramework("io.gatling.sbt.GatlingFramework"),
+    Gatling / javaOptions += "--add-opens=java.base/java.lang=ALL-UNNAMED",
+    libraryDependencies ++= Config.deps ++ Log.deps ++ GatlingLibs.deps,
     scalafixDependencies ++= ScalafixRules.deps,
     scalafixOnCompile := true,
     dockerExposedPorts ++= Seq(8080),

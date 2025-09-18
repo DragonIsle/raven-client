@@ -50,4 +50,11 @@ object Dependencies {
     val logbackClassic      = "ch.qos.logback" % "logback-classic" % "1.5.18"
     val deps: Seq[ModuleID] = Seq(log4cats, logbackClassic)
   }
+
+  object GatlingLibs {
+    private val gatlingVersion    = "3.14.4"
+    private val gatling           = "io.gatling"            % "gatling-test-framework"    % gatlingVersion % Test
+    private val gatlingHighcharts = "io.gatling.highcharts" % "gatling-charts-highcharts" % gatlingVersion % Test
+    val deps: Seq[ModuleID]       = Seq(gatling, gatlingHighcharts)
+  }
 }

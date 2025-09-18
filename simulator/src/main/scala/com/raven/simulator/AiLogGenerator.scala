@@ -11,9 +11,9 @@ import scala.math.BigDecimal.RoundingMode
 
 object AiLogGenerator:
 
-  private final case class NumericFeatureConfig(min: Double, max: Double, precision: Int)
+  final case class NumericFeatureConfig(min: Double, max: Double, precision: Int)
 
-  private val aiModelFeatureConfigs: Map[String, (Map[String, NumericFeatureConfig], Map[String, List[String]])] = Map(
+  val aiModelFeatureConfigs: Map[String, (Map[String, NumericFeatureConfig], Map[String, List[String]])] = Map(
     "model1" -> (Map(
       "tenure_months"     -> NumericFeatureConfig(1.0, 36.0, 0),
       "monthly_charges"   -> NumericFeatureConfig(1.0, 100.0, 2),
@@ -48,7 +48,8 @@ object AiLogGenerator:
 
   def generateOneAiLog(
       timestamp: Instant,
-      config: SingleLogGeneratorConfig
+      config: SingleLogGeneratorConfig,
+      modelId: String
   )(using random: Random[IO]): IO[AiLog] =
     for {
       lowConfidenceScore <- RandomUtils.rollChance(config.lowConfidenceScoreChance)
@@ -61,7 +62,6 @@ object AiLogGenerator:
       responseTimeMs <-
         if (highResponseTime) IO.pure(config.responseTimeMsThreshold + 1)
         else random.betweenInt(100, config.responseTimeMsThreshold)
-      modelId <- random.elementOf(aiModelFeatureConfigs.keySet)
       (numF, catF) = aiModelFeatureConfigs.getOrElse(modelId, (Map.empty, Map.empty))
       numericFeatures <- numF.toList.traverse { case (feature, NumericFeatureConfig(from, to, precision)) =>
         // numeric drift - 20% distribution shift

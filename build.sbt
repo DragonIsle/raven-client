@@ -3,7 +3,7 @@ import Dependencies.*
 import scala.collection.Seq
 
 ThisBuild / organization := "com.raven"
-ThisBuild / version := "0.2.1-SNAPSHOT"
+ThisBuild / version := "1.0.0"
 ThisBuild / scalaVersion := "3.7.0"
 ThisBuild / semanticdbEnabled := true
 
